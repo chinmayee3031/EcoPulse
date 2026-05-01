@@ -48,21 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitReportBtn = document.getElementById('submit-report');
     const cancelReportBtn = document.getElementById('cancel-report');
 
-    // 4. Authentication Logic
-    roleCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            // Find the closest role-card element if a button or div inside is clicked
-            const targetCard = e.target.closest('.role-card');
-            if (!targetCard) return;
-
-            state.role = targetCard.getAttribute('data-role');
-
-            // Show modal
-            loginModal.classList.remove('hidden');
-           // Update line 62 in script.js - Change the selector to include buttons
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing code ...
-    
+   
     // 4. Authentication Logic - UPDATED
     roleCards.forEach(card => {
         card.addEventListener('click', handleRoleSelection);
