@@ -1,209 +1,191 @@
 /**
- * EcoTrack | Smart Waste Management System
- * Core Logic & IoT Simulation
+ * EcoPulse - Smart Waste Management System
+ * Core Logic, Authentication, and Portal View Routing
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Lucide Icons
+    // 1. Initialize Lucide Icons
     if (window.lucide) {
         window.lucide.createIcons();
     }
 
-    // State Management
+    // 2. Application State Management
     const state = {
+        user: null,
+        role: null,
         bins: {
             wet: { level: 75, threshold: 80 },
             dry: { level: 40, threshold: 85 },
             recyclable: { level: 60, threshold: 80 },
             hazardous: { level: 15, threshold: 90 }
         },
-        alerts: [
-            { id: 1, type: 'critical', msg: 'Wet Waste Bin #42 is 95% full', time: '2 mins ago' },
-            { id: 2, type: 'warning', msg: 'Route B-12 delay due to traffic', time: '15 mins ago' },
-            { id: 3, type: 'info', msg: 'Battery low on Smart Bin #108', time: '1 hour ago' }
-        ],
-        currentView: 'dashboard'
+        reports: [],
+        announcements: [
+            { id: 1, text: 'Collection in North District might be delayed due to heavy rain.' }
+        ]
     };
 
-    // --- DOM Elements ---
-    const navItems = document.querySelectorAll('.nav-item');
-    const views = document.querySelectorAll('.view');
-    const alertsContainer = document.getElementById('alerts-container');
-    const optimizeBtn = document.getElementById('optimize-route-btn');
-    const routeCanvas = document.getElementById('route-canvas');
+    // 3. DOM Elements
+    const roleCards = document.querySelectorAll('.role-card');
+    const loginModal = document.getElementById('login-modal');
+    const modalRoleTitle = document.getElementById('modal-role-title');
+    const usernameInput = document.getElementById('username-input');
+    const confirmLoginBtn = document.getElementById('confirm-login');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userInfo = document.getElementById('user-info');
+    const displayName = document.getElementById('display-name');
 
-    // --- Navigation Logic ---
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const viewId = item.getAttribute('data-view');
+    // Views
+    const landingHero = document.getElementById('landing-hero');
+    const loginView = document.getElementById('login-view');
+    const officialView = document.getElementById('official-view');
+    const workerView = document.getElementById('worker-view');
+    const citizenView = document.getElementById('citizen-view');
+
+    // Citizen elements
+    const reportIssueCard = document.getElementById('report-issue-card');
+    const reportModal = document.getElementById('report-modal');
+    const submitReportBtn = document.getElementById('submit-report');
+    const cancelReportCancelBtn = document.getElementById('cancel-report');
+    
+    // 4. Authentication Logic
+    roleCards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Prevent interference from nested elements
+            state.role = card.getAttribute('data-role');
             
-            // Update Active Nav
-            navItems.forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
-
-            // Switch Views
-            views.forEach(v => v.classList.remove('active'));
-            const targetView = document.getElementById(`${viewId}-view`);
-            if (targetView) targetView.classList.add('active');
+            // Show modal
+            loginModal.classList.remove('hidden');
+            modalRoleTitle.textContent = `Login as ${state.role.charAt(0).toUpperCase() + state.role.slice(1)}`;
+            usernameInput.focus();
         });
     });
 
-    // --- Dashboard Updates ---
-    function updateProgressBars() {
-        Object.keys(state.bins).forEach(type => {
-            const data = state.bins[type];
-            const circle = document.getElementById(`${type}-circle`);
-            const text = circle?.parentElement.querySelector('.percentage');
-            
-            if (circle && text) {
-                const strokeDash = `${data.level}, 100`;
-                circle.setAttribute('stroke-dasharray', strokeDash);
-                text.textContent = `${data.level}%`;
+    confirmLoginBtn.addEventListener('click', () => {
+        const name = usernameInput.value.trim();
+        if (!name) {
+            alert('Please enter your name to continue.');
+            return;
+        }
+
+        state.user = name;
+        loginModal.classList.add('hidden');
+        landingHero.classList.add('hidden');
+        loginView.classList.add('hidden');
+
+        // Update top navigation bar UI
+        userInfo.classList.remove('hidden');
+        displayName.textContent = `${state.user} (${state.role.toUpperCase()})`;
+
+        // Render appropriate dashboard view
+        if (state.role === 'official') {
+            officialView.classList.remove('hidden');
+            initOfficialView();
+        } else if (state.role === 'worker') {
+            workerView.classList.remove('hidden');
+            initWorkerView();
+        } else if (state.role === 'citizen') {
+            citizenView.classList.remove('hidden');
+            document.querySelector('#citizen-view h1').textContent = `Welcome, ${state.user}`;
+            initCitizenView();
+        }
+    });
+
+    // Handle logout
+    logoutBtn.addEventListener('click', () => {
+        state.user = null;
+        state.role = null;
+
+        userInfo.classList.add('hidden');
+        officialView.classList.add('hidden');
+        workerView.classList.add('hidden');
+        citizenView.classList.add('hidden');
+
+        landingHero.classList.remove('hidden');
+        loginView.classList.remove('hidden');
+
+        if (window.lucide) window.lucide.createIcons();
+    });
+
+    // 5. Views Initialization Logic
+
+    function initOfficialView() {
+        const workerListBody = document.getElementById('worker-list-body');
+        workerListBody.innerHTML = `
+            <tr>
+                <td style="padding: 12px; font-weight: 600;">Mark Spencer</td>
+                <td><span style="color: var(--success);">Active (044)</span></td>
+                <td>16 Bins</td>
+                <td>98%</td>
+                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">Message</button></td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; font-weight: 600;">Jane Doe</td>
+                <td><span style="color: var(--warning);">En-route</span></td>
+                <td>11 Bins</td>
+                <td>89%</td>
+                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">Message</button></td>
+            </tr>
+        `;
+    }
+
+    function initWorkerView() {
+        document.getElementById('worker-greeting').textContent = `Hello, ${state.user}`;
+        document.getElementById('worker-gps-location').textContent = 'Main St. - Sector 4 (Coords: 15.3647, 75.1240)';
+
+        // Simulate progress bar
+        const progressBar = document.getElementById('worker-route-progress');
+        progressBar.style.width = '60%';
+    }
+
+    function initCitizenView() {
+        // Report problem modal trigger
+        reportIssueCard.addEventListener('click', () => {
+            reportModal.classList.remove('hidden');
+        });
+
+        constReportCancelBtn.addEventListener('click', () => {
+            reportModal.classList.add('hidden');
+        });
+
+        submitReportBtn.addEventListener('click', () => {
+            const issueType = document.getElementById('issue-type').value;
+            const location = document.getElementById('issue-location').value || 'Unspecified Sector';
+
+            if (!location) {
+                alert('Please fill out the location field.');
+                return;
+            }
+
+            state.reports.push({ id: Date.now(), type: issueType, location, time: 'Just now' });
+            alert('Report submitted to command center successfully!');
+            reportModal.classList.add('hidden');
+
+            // Update UI list in official dashboard if available
+            updateOfficialReports();
+        });
+        
+        document.getElementById('send-official-message').addEventListener('click', () => {
+            const msgInput = document.getElementById('citizen-message-input');
+            if(msgInput.value.trim() !== '') {
+                alert('Message sent to city administrators!');
+                msgInput.value = '';
             }
         });
     }
 
-    // Simulate IoT Data
-    setInterval(() => {
-        Object.keys(state.bins).forEach(type => {
-            // Randomly increment/decrement levels slightly
-            const change = Math.floor(Math.random() * 3) - 1; 
-            state.bins[type].level = Math.max(0, Math.min(100, state.bins[type].level + change));
+    function updateOfficialReports() {
+        const reportsList = document.getElementById('citizen-reports-list');
+        if (!reportsList) return;
+
+        reportsList.innerHTML = '';
+        state.reports.forEach(report => {
+            const card = document.createElement('div');
+            card.className = 'glass';
+            card.style.padding = '12px';
+            card.style.marginBottom = '8px';
+            card.innerHTML = `<strong>${report.type}</strong><br><small style="color: var(--text-muted);">${report.location}</small>`;
+            reportsList.appendChild(card);
         });
-        updateProgressBars();
-    }, 5000);
-
-    // --- Alerts System ---
-    function renderAlerts() {
-        if (!alertsContainer) return;
-        alertsContainer.innerHTML = '';
-        state.alerts.forEach(alert => {
-            const div = document.createElement('div');
-            div.className = `alert-item ${alert.type}`;
-            div.innerHTML = `
-                <div class="alert-icon">
-                    <i data-lucide="${alert.type === 'critical' ? 'alert-octagon' : (alert.type === 'warning' ? 'alert-triangle' : 'info')}"></i>
-                </div>
-                <div class="alert-content">
-                    <p>${alert.msg}</p>
-                    <span>${alert.time}</span>
-                </div>
-            `;
-            alertsContainer.appendChild(div);
-        });
-        if (window.lucide) window.lucide.createIcons();
     }
-
-    // --- IntelliRoute Map Simulation ---
-    function initMapSimulation() {
-        if (!routeCanvas) return;
-        const ctx = routeCanvas.getContext('2d');
-        const parent = routeCanvas.parentElement;
-        
-        // Handle Resize
-        function resize() {
-            routeCanvas.width = parent.offsetWidth;
-            routeCanvas.height = parent.offsetHeight;
-            drawMap();
-        }
-
-        const nodes = [];
-        for (let i = 0; i < 8; i++) {
-            nodes.push({
-                x: Math.random() * 0.8 + 0.1,
-                y: Math.random() * 0.6 + 0.2,
-                id: i
-            });
-        }
-
-        function drawMap() {
-            ctx.clearRect(0, 0, routeCanvas.width, routeCanvas.height);
-            
-            // Draw "Roads" (Connections)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            nodes.forEach((node, idx) => {
-                const next = nodes[(idx + 1) % nodes.length];
-                ctx.moveTo(node.x * routeCanvas.width, node.y * routeCanvas.height);
-                ctx.lineTo(next.x * routeCanvas.width, next.y * routeCanvas.height);
-            });
-            ctx.stroke();
-
-            // Draw Active Route (Glow Effect)
-            ctx.strokeStyle = '#00ff88';
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'rgba(0, 255, 136, 0.5)';
-            ctx.beginPath();
-            nodes.slice(0, 4).forEach((node, idx) => {
-                const x = node.x * routeCanvas.width;
-                const y = node.y * routeCanvas.height;
-                if (idx === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // Draw Nodes (Bins)
-            nodes.forEach(node => {
-                ctx.fillStyle = node.id < 4 ? '#00ff88' : '#334155';
-                ctx.beginPath();
-                ctx.arc(node.x * routeCanvas.width, node.y * routeCanvas.height, 4, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Draw Truck
-            const truckNode = nodes[0];
-            ctx.fillStyle = '#ffffff';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(truckNode.x * routeCanvas.width, truckNode.y * routeCanvas.height, 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-
-        window.addEventListener('resize', resize);
-        resize();
-
-        // Animation loop
-        function animate() {
-            // Simple logic to move truck could go here
-            requestAnimationFrame(animate);
-        }
-        animate();
-    }
-
-    optimizeBtn.addEventListener('click', () => {
-        optimizeBtn.textContent = 'Optimizing...';
-        optimizeBtn.disabled = true;
-        
-        setTimeout(() => {
-            optimizeBtn.textContent = 'Route Optimized!';
-            optimizeBtn.style.background = '#10b981';
-            
-            // Show toast or alert
-            const newAlert = { 
-                id: Date.now(), 
-                type: 'info', 
-                msg: 'Route optimized for Sector 7-B. Saving 12% fuel.', 
-                time: 'Just now' 
-            };
-            state.alerts.unshift(newAlert);
-            renderAlerts();
-
-            setTimeout(() => {
-                optimizeBtn.textContent = 'Optimize Route';
-                optimizeBtn.style.background = '';
-                optimizeBtn.disabled = false;
-            }, 3000);
-        }, 1500);
-    });
-
-    // --- Initialization ---
-    updateProgressBars();
-    renderAlerts();
-    initMapSimulation();
 });
