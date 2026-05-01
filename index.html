@@ -71,20 +71,21 @@
                     <div style="height: 200px; background: url('official_command_center_1777577635418.png') center/cover; border-radius: 12px; margin-bottom: 20px;"></div>
                     <h3>City Official</h3>
                     <p style="color: var(--text-muted); margin: 12px 0;">Manage city-wide operations, optimize routes, and oversee collection workers.</p>
-                    <button class="btn btn-primary" style="width: 100%;">Access Command Center</button>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="document.querySelector('[data-role=\"official\"]').click()">Access Command Center</button>
+
                 </div>
                 
                 <div class="card glass role-card" data-role="worker">
                     <div style="height: 200px; background: url('worker_efficiency_1777577938749.png') center/cover; border-radius: 12px; margin-bottom: 20px;"></div>
                     <h3>Collection Worker</h3>
-                    <p style="color: var(--text-muted); margin: 12px 0;">View assigned routes, track collection progress, and earn rewards for efficiency.</p>
+                    <button class="btn btn-primary" style="width: 100%; background: var(--accent);" onclick="document.querySelector('[data-role=\"worker\"]').click()">Start Duty</button>
                     <button class="btn btn-primary" style="width: 100%; background: var(--accent);">Start Duty</button>
                 </div>
                 
                 <div class="card glass role-card" data-role="citizen">
                     <div style="height: 200px; background: url('hero_city_smart_waste_1777577586889.png') center/cover; border-radius: 12px; margin-bottom: 20px;"></div>
                     <h3>Citizen</h3>
-                    <p style="color: var(--text-muted); margin: 12px 0;">Report issues, find nearby bins, and learn about waste segregation.</p>
+                    <button class="btn btn-primary" style="width: 100%; background: var(--secondary);" onclick="document.querySelector('[data-role=\"citizen\"]').click()">Community Portal</button>
                     <button class="btn btn-primary" style="width: 100%; background: var(--secondary);">Community Portal</button>
                 </div>
             </div>
