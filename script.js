@@ -59,8 +59,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show modal
             loginModal.classList.remove('hidden');
-            modalRoleTitle.textContent = `Login as ${state.role.charAt(0).toUpperCase() + state.role.slice(1)}`;
-            usernameInput.focus();
+           // Update line 62 in script.js - Change the selector to include buttons
+document.addEventListener('DOMContentLoaded', () => {
+    // ... existing code ...
+    
+    // 4. Authentication Logic - UPDATED
+    roleCards.forEach(card => {
+        card.addEventListener('click', handleRoleSelection);
+        card.querySelector('button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleRoleSelection({target: card});
+        });
+    });
+    
+    function handleRoleSelection(e) {
+        const targetCard = e.target.closest('.role-card');
+        if (!targetCard) return;
+        
+        state.role = targetCard.getAttribute('data-role');
+        loginModal.classList.remove('hidden');
+        modalRoleTitle.textContent = `Login as ${state.role.charAt(0).toUpperCase() + state.role.slice(1)}`;
+        usernameInput.focus();
+    }
+});
         });
     });
 
