@@ -46,14 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportIssueCard = document.getElementById('report-issue-card');
     const reportModal = document.getElementById('report-modal');
     const submitReportBtn = document.getElementById('submit-report');
-    const cancelReportCancelBtn = document.getElementById('cancel-report');
-    
+    const cancelReportBtn = document.getElementById('cancel-report');
+
     // 4. Authentication Logic
     roleCards.forEach(card => {
         card.addEventListener('click', (e) => {
-            // Prevent interference from nested elements
-            state.role = card.getAttribute('data-role');
-            
+            // Find the closest role-card element if a button or div inside is clicked
+            const targetCard = e.target.closest('.role-card');
+            if (!targetCard) return;
+
+            state.role = targetCard.getAttribute('data-role');
+
             // Show modal
             loginModal.classList.remove('hidden');
             modalRoleTitle.textContent = `Login as ${state.role.charAt(0).toUpperCase() + state.role.slice(1)}`;
@@ -77,7 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
         userInfo.classList.remove('hidden');
         displayName.textContent = `${state.user} (${state.role.toUpperCase()})`;
 
-        // Render appropriate dashboard view
+        // Hide/Show portal views based on role
+        officialView.classList.add('hidden');
+        workerView.classList.add('hidden');
+        citizenView.classList.add('hidden');
+
         if (state.role === 'official') {
             officialView.classList.remove('hidden');
             initOfficialView();
@@ -89,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#citizen-view h1').textContent = `Welcome, ${state.user}`;
             initCitizenView();
         }
+        
+        if (window.lucide) window.lucide.createIcons();
     });
 
     // Handle logout
@@ -108,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 5. Views Initialization Logic
-
     function initOfficialView() {
         const workerListBody = document.getElementById('worker-list-body');
         workerListBody.innerHTML = `
@@ -117,16 +125,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span style="color: var(--success);">Active (044)</span></td>
                 <td>16 Bins</td>
                 <td>98%</td>
-                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">Message</button></td>
+                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;" onclick="alert('Message sent to worker.')">Message</button></td>
             </tr>
             <tr>
                 <td style="padding: 12px; font-weight: 600;">Jane Doe</td>
                 <td><span style="color: var(--warning);">En-route</span></td>
                 <td>11 Bins</td>
                 <td>89%</td>
-                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">Message</button></td>
+                <td><button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;" onclick="alert('Message sent to worker.')">Message</button></td>
             </tr>
         `;
+
+        document.getElementById('broadcast-btn').onclick = () => {
+            const message = prompt("Enter announcement/broadcast message for citizens:");
+            if (message) alert("Broadcast sent to all citizens: " + message);
+        };
+        
+        document.getElementById('reply-citizen-btn').onclick = () => {
+            alert("Opening pending citizen messages...");
+        };
+
+        document.getElementById('notify-workers-btn').onclick = () => {
+            alert("General notification sent to all workers!");
+        };
+        
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function initWorkerView() {
@@ -136,42 +159,42 @@ document.addEventListener('DOMContentLoaded', () => {
         // Simulate progress bar
         const progressBar = document.getElementById('worker-route-progress');
         progressBar.style.width = '60%';
+        
+        document.getElementById('refresh-gps').onclick = () => {
+            alert('GPS tracking updated successfully.');
+        };
     }
 
     function initCitizenView() {
-        // Report problem modal trigger
-        reportIssueCard.addEventListener('click', () => {
+        reportIssueCard.onclick = () => {
             reportModal.classList.remove('hidden');
-        });
+        };
 
-        constReportCancelBtn.addEventListener('click', () => {
+        cancelReportBtn.onclick = () => {
             reportModal.classList.add('hidden');
-        });
+        };
 
-        submitReportBtn.addEventListener('click', () => {
+        submitReportBtn.onclick = () => {
             const issueType = document.getElementById('issue-type').value;
             const location = document.getElementById('issue-location').value || 'Unspecified Sector';
 
-            if (!location) {
-                alert('Please fill out the location field.');
-                return;
-            }
-
             state.reports.push({ id: Date.now(), type: issueType, location, time: 'Just now' });
             alert('Report submitted to command center successfully!');
+            
+            // Close and reset
             reportModal.classList.add('hidden');
-
-            // Update UI list in official dashboard if available
+            document.getElementById('issue-location').value = '';
+            
             updateOfficialReports();
-        });
+        };
         
-        document.getElementById('send-official-message').addEventListener('click', () => {
+        document.getElementById('send-official-message').onclick = () => {
             const msgInput = document.getElementById('citizen-message-input');
             if(msgInput.value.trim() !== '') {
                 alert('Message sent to city administrators!');
                 msgInput.value = '';
             }
-        });
+        };
     }
 
     function updateOfficialReports() {
